@@ -47,7 +47,6 @@ def extract_metadata(TOC):
 
         # Check if the line starts with a number followed by the article title
         # Ensure the following characters are not digits
-#         match = re.match(r'(\d+)\s+([^\d]+)$', line)
         match = re.search(r'(\d+)\s+([^\d]+)$', line)
         if match:
             # Extract the starting page number and title
@@ -122,3 +121,4 @@ def extract_articles(issue_name):
 
 
     return article
+

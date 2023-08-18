@@ -7,7 +7,7 @@
 from langchain.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI, AzureChatOpenAI
+from langchain.chat_models import ChatOpenAI, AzureOpenAI
 import os
 
 
@@ -34,12 +34,14 @@ class TopicClassifier:
             )
         
         elif engine == 'Azure':
-            self.llm = AzureChatOpenAI(openai_api_base="https://abb-chcrc.openai.azure.com/",
-                openai_api_version="2023-03-15-preview",
-                openai_api_key=os.environ["OPENAI_API_KEY"],
-                openai_api_type="azure",
-                deployment_name="gpt-35-turbo-0301",
-                temperature=0.8)
+            self.llm = AzureOpenAI(
+                    deployment_name="deployment-5af509f3323342ee919481751c6f8b7d",
+                    model_name="text-davinci-003",
+                    openai_api_base="https://abb-chcrc.openai.azure.com/",
+                    openai_api_version="2023-03-15-preview",
+                    openai_api_key=os.environ["OPENAI_API_KEY"],
+                    openai_api_type="azure",
+                )
 
         else:
             raise KeyError("Currently unsupported chat model type!")
