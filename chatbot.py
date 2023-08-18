@@ -1,6 +1,6 @@
 # Content: Class definition of interactive chatbot system 
 # Author: Shuai Guo
-# Email: shuaiguo0916@hotmail.com
+# Email: shuai.guo@ch.abb.com
 # Date: August, 2023
 
 
@@ -12,7 +12,7 @@ from langchain.prompts import (
     HumanMessagePromptTemplate
 )
 from langchain.chains import ConversationChain
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import ChatOpenAI, AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory
 import os
 from abc import ABC, abstractmethod
@@ -22,7 +22,7 @@ class Chatbot(ABC):
     """Class definition for a single chatbot with memory, created with LangChain."""
     
     
-    def __init__(self, engine):
+    def __init__(self, engine='Azure'):
         """Initialize the large language model and its associated memory.
         The memory can be an LangChain emory object, or a list of chat history.
 
@@ -40,6 +40,14 @@ class Chatbot(ABC):
                 model_name="gpt-3.5-turbo",
                 temperature=0.8
             )
+
+        elif engine == 'Azure':
+            self.llm = AzureChatOpenAI(openai_api_base="https://abb-chcrc.openai.azure.com/",
+                    openai_api_version="2023-03-15-preview",
+                    openai_api_key=os.environ["OPENAI_API_KEY"],
+                    openai_api_type="azure",
+                    deployment_name="gpt-35-turbo-0301",
+                    temperature=0.8)
 
         else:
             raise KeyError("Currently unsupported chat model type!")
@@ -70,6 +78,7 @@ class Chatbot(ABC):
 
 class JournalistBot(Chatbot):
     """Class definition for the journalist bot, created with LangChain."""
+
     
     def __init__(self, engine):
         """Setup journalist bot.
@@ -89,17 +98,21 @@ class JournalistBot(Chatbot):
         self.memory = ConversationBufferMemory(return_messages=True)
 
 
-    def instruct(self, topic, abstract):
+    def instruct(self, theme, summary, focal_points, audience):
         """Determine the context of journalist chatbot. 
         
         Args:
         ------
-        topic: the topic of the paper
-        abstract: the abstract of the paper
+        theme: the theme of the article
+        summary: the summary of the paper
+        focal_points: list, interested aspects to distill
+        audience: list, target audience
         """
         
-        self.topic = topic
-        self.abstract = abstract
+        self.theme = theme
+        self.summary = summary
+        self.focal_points = focal_points
+        self.audience = audience
         
         # Define prompt template
         prompt = ChatPromptTemplate.from_messages([
@@ -135,25 +148,31 @@ class JournalistBot(Chatbot):
         prompt: instructions for the chatbot.
         """       
         
-        # Compile bot instructions 
-        prompt = f"""You are a technical journalist interested in {self.topic}, 
-        Your task is to distill a recently published scientific paper on this topic through
+        # Base prompr 
+        prompt = f"""You are a journalist interested in the news of the company ABB that are related to {self.theme}.
+
+        Your task is to extract key information from an article in ABB's review journal through 
         an interview with the author, which is played by another chatbot.
-        Your objective is to ask comprehensive and technical questions 
-        so that anyone who reads the interview can understand the paper's main ideas and contributions, 
-        even without reading the paper itself. 
-        You're provided with the paper's summary to guide your initial questions.
+
+        Your objective is to ask insightful questions based on the article's content and the interests and needs of 
+        {self.audience}, so that {self.audience} who reads the interview can grasp the article's core without reading it in full.
+
+        You're provided with the article's summary to guide your initial questions.
+
         You must keep the following guidelines in mind:
-        - Focus exclusive on the technical content of the paper.
+        - Always remember your role as the journalist.
         - Avoid general questions about {self.topic}, focusing instead on specifics related to the paper.
         - Only ask one question at a time.
-        - Feel free to ask about the study's purpose, methods, results, and significance, 
-        and clarify any technical terms or complex concepts. 
-        - Your goal is to lead the conversation towards a clear and engaging summary.
         - Do not include any prefixed labels like "Interviewer:" or "Question:" in your question.
-        
-        [Abstract]: {self.abstract}"""
-        
+        - Keep your questions focused, relevant, and succinct.
+        """
+
+        for focal_point in self.focal_points:
+            prompt += '\n'
+            prompt += focal_point
+
+        prompt += '\n\n'
+        prompt += f"""[Summary]: {self.summary}"""
         
         return prompt
 
