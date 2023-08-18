@@ -12,6 +12,10 @@ def extract_TOC(issue_name):
     Args:
     --------------
     issue_name: name of the journal issue.
+
+    Outputs:
+    --------
+    TOC: extratced table-of-content page of the PDF
     """
 
     # Table of content page
@@ -31,6 +35,11 @@ def extract_metadata(TOC):
     Args:
     --------------
     TOC: table of content page (PDF).
+
+    Outputs:
+    --------
+    articles: dict, with article title & subtitle, starting page number, and article length.
+    TOC_page_number: page number of the table-of-content page in the original PDF.
     """
 
     # Split the text into lines
@@ -76,12 +85,18 @@ def extract_metadata(TOC):
     return articles, TOC_page_number
 
 
+
 def extract_articles(issue_name):
     """Extracting the article metadata given an issue of ABB review journal.
 
     Args:
     --------------
     issue_name: name of the journal issue.
+
+    Outputs:
+    --------
+    articles: dict, with article title & subtitle, starting page number, and article length.
+              Articles are sorted based on their starting page number.
     """
 
     # Table of content page
@@ -120,5 +135,5 @@ def extract_articles(issue_name):
         article['start_page'] = article['start_page'] - TOC_page_number + 3
 
 
-    return article
+    return articles
 
