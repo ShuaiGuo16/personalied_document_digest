@@ -19,7 +19,7 @@ def extract_TOC(issue_name):
     """
 
     # Table of content page
-    loader = PyPDFLoader("./papers/"+issue_name+".pdf")
+    loader = PyPDFLoader("./papers/"+issue_name)
     raw_documents = loader.load()
     TOC_page = 3
     TOC = raw_documents[TOC_page-1].page_content
