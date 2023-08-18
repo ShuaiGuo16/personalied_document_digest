@@ -7,7 +7,8 @@
 from langchain.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI, AzureOpenAI
+from langchain.chat_models import ChatOpenAI
+from langchain.llms import OpenAI, AzureOpenAI
 import os
 
 
