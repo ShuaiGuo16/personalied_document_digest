@@ -204,16 +204,19 @@ class AuthorBot(Chatbot):
         
         
         
-    def instruct(self, topic):
+    def instruct(self, theme, audience):
         """Determine the context of author chatbot. 
         
         Args:
         -------
         topic: the topic of the paper.
+        audience: list, target audience
         """
 
-        # Specify topic
-        self.topic = topic
+        # Specify topic & audience
+        self.theme = theme
+        self.audience = audience
+
         
         # Define prompt template
         qa_prompt = ChatPromptTemplate.from_messages([
@@ -224,7 +227,7 @@ class AuthorBot(Chatbot):
         # Create conversation chain
         self.conversation_qa = ConversationalRetrievalChain.from_llm(llm=self.llm, verbose=self.debug,
                                                                      retriever=self.vectorstore.as_retriever(
-                                                                         search_kwargs={"k": 3}),
+                                                                         search_kwargs={"k": 5}),
                                                                     chain_type="stuff", return_source_documents=True,
                                                                     combine_docs_chain_kwargs={'prompt': qa_prompt})
 
@@ -259,19 +262,21 @@ class AuthorBot(Chatbot):
         """       
         
         # Compile bot instructions 
-        prompt = f"""You are the author of a recently published scientific paper on {self.topic}.
-        You are being interviewed by a technical journalist who is played by another chatbot and
-        looking to write an article to summarize your paper.
+        prompt = f"""You are the author of a recently published article from ABB's review journal.
+        You are being interviewed by a journalist who is played by another chatbot and
+        aiming to extract insights beneficial for {self.audience}.
         Your task is to provide comprehensive, clear, and accurate answers to the journalist's questions.
+        Please always consider the target audience, {self.audience}, and tailor your explanations in a manner that 
+        is most relevant and understandable to them.
+
         Please keep the following guidelines in mind:
-        - Try to explain complex concepts and technical terms in an understandable way, without sacrificing accuracy.
-        - Your responses should primarily come from the relevant content of this paper, 
-        which will be provided to you in the following, but you can also use your broad knowledge in {self.topic} to 
-        provide context or clarify complex topics. 
-        - Remember to differentiate when you are providing information directly from the paper versus 
-        when you're giving additional context or interpretation. Use phrases like 'According to the paper...' for direct information, 
-        and 'Based on general knowledge in the field...' when you're providing additional context.
-        - Only answer one question at a time. Ensure that each answer is complete before moving on to the next question.
+        - Always prioritize information directly from the article. If a question relates to content not covered in the article, be transparent about this.
+        - If a direct answer isn't available in the article, you can draw upon your broader knowledge on the subject. 
+        - In cases where even your broad knowledge doesn't cover the question, suggest additional resources or avenues where the answer might be found.
+        - Always clarify when you're providing information directly from the article with phrases like 'According to the article...'. 
+        - When providing broader context or interpreting the data, use terms like 'Based on general trends in the field...'.
+        - Handle one question at a time, ensuring each response is complete before addressing the next inquiry.
+        - Remember to always maintain the integrity and accuracy of the article's information, and if you're unsure or speculating, be transparent about it.
         - Do not include any prefixed labels like "Author:", "Interviewee:", Respond:", or "Answer:" in your answer.
         """
         
