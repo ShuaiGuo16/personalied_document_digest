@@ -49,12 +49,13 @@ class TopicClassifier:
     
 
 
-    def classifier(self, topic_list, verbose=False):
+    def classifier(self, topic_list, desired_max=5, verbose=False):
         """Determine relevant topics in the given topic list.
 
         Args:
         --------------
         topic_list: a list of potential topics.
+        desired_max: desired maximum score for measuring relevance.
         verbose: boolean, if classifying progress is shown.
 
         Outputs:
@@ -88,6 +89,10 @@ class TopicClassifier:
 
         # Determine relevant topics
         relevant_topics = dict(sorted(results.items(), key=lambda item: item[1], reverse=True))
+
+        # Normalize relevant scores
+        relevant_topics = self._normalize_score(relevant_topics, desired_max)
+
 
         return relevant_topics
 
@@ -132,6 +137,28 @@ class TopicClassifier:
         )
 
         return prompt
+    
+
+
+    def _normalize_score(self, relevant_topics, desired_max):
+        """Scale the relevance scores to the desired range.
+
+        Args:
+        --------
+        relevant_topics: dict, relevant topics and their associated relevance score.
+        desired_max: desired maximum score for measuring relevance.
+        """
+
+        # Get min & max
+        original_max = max(relevant_topics.values())
+        original_min = min(relevant_topics.values()) 
+
+        # Normalize scores
+        normalized_scores = {topic: (score-original_min)/(original_max-original_min)*desired_max for topic, score in relevant_topics.items()}
+
+        return normalized_scores
+
+
 
 
         
