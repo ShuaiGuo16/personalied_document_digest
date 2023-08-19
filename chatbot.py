@@ -161,7 +161,7 @@ class JournalistBot(Chatbot):
 
         You must keep the following guidelines in mind:
         - Always remember your role as the journalist.
-        - Avoid general questions about {self.topic}, focusing instead on specifics related to the paper.
+        - Avoid general questions about {self.theme}, focusing instead on specifics related to the paper.
         - Only ask one question at a time.
         - Do not include any prefixed labels like "Interviewer:" or "Question:" in your question.
         - Keep your questions focused, relevant, and succinct.
