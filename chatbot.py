@@ -37,14 +37,14 @@ class Chatbot(ABC):
         # Instantiate llm
         if engine == 'OpenAI':
             self.llm = ChatOpenAI(
-                model_name="gpt-3.5-turbo",
+                model_name='gpt-4',
                 temperature=0.8
             )
 
         elif engine == 'Azure':
             self.llm = AzureChatOpenAI(openai_api_base="https://abb-chcrc.openai.azure.com/",
                     openai_api_version="2023-03-15-preview",
-                    openai_api_key=os.environ["OPENAI_API_KEY"],
+                    openai_api_key=os.environ["OPENAI_API_KEY_AZURE"],
                     openai_api_type="azure",
                     deployment_name="gpt-35-turbo-0301",
                     temperature=0.8)
@@ -161,7 +161,7 @@ class JournalistBot(Chatbot):
 
         You must keep the following guidelines in mind:
         - Always remember your role as the journalist.
-        - Avoid general questions about {self.theme}, focusing instead on specifics related to the paper.
+        - Avoid general questions about {self.theme}, focusing instead on specifics related to the article.
         - Only ask one question at a time.
         - Do not include any prefixed labels like "Interviewer:" or "Question:" in your question.
         - Keep your questions focused, relevant, and succinct.

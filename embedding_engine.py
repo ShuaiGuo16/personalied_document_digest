@@ -31,6 +31,7 @@ class Embedder:
         elif engine == 'Azure':
             self.embeddings = OpenAIEmbeddings(model="text-embedding-ada-002", 
                               deployment="text-embedding-ada-002",
+                              openai_api_key=os.environ["OPENAI_API_KEY_AZURE"],
                               openai_api_base="https://abb-chcrc.openai.azure.com/",
                               openai_api_type="azure",
                               chunk_size=1)
@@ -102,14 +103,14 @@ class Embedder:
 
         if llm_engine == 'OpenAI':
             llm = ChatOpenAI(
-                model_name="gpt-3.5-turbo",
+                model_name="gpt-4",
                 temperature=0.8
             )
         
         elif llm_engine == 'Azure':
             llm = AzureChatOpenAI(openai_api_base="https://abb-chcrc.openai.azure.com/",
                 openai_api_version="2023-03-15-preview",
-                openai_api_key=os.environ["OPENAI_API_KEY"],
+                openai_api_key=os.environ["OPENAI_API_KEY_AZURE"],
                 openai_api_type="azure",
                 deployment_name="gpt-35-turbo-0301",
                 temperature=0.8)
