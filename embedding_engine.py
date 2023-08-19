@@ -40,7 +40,7 @@ class Embedder:
         
 
 
-    def load_n_process_document(self, issue, page):
+    def load_n_process_document(self, issue, page, debug=False):
         """Load and process PDF document.
 
         Args:
@@ -51,11 +51,14 @@ class Embedder:
 
         # Load PDF
         loader = PyMuPDFLoader(issue)
-        documents = loader.load()[page['start']: page['start'] + page['length']]
+        documents = loader.load()[page['start']-1: page['start']+page['length']-1]
 
         # Process PDF
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
         self.documents = text_splitter.split_documents(documents)
+
+        if debug:
+            return documents
 
 
 
