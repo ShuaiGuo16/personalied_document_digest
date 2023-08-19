@@ -41,7 +41,7 @@ class Embedder:
         
 
 
-    def load_n_process_document(self, issue, page, debug=False):
+    def load_n_process_document(self, issue, page, chunk_size=5000, debug=False):
         """Load and process PDF document.
 
         Args:
@@ -55,7 +55,7 @@ class Embedder:
         documents = loader.load()[page['start']-1: page['start']+page['length']-1]
 
         # Process PDF
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=100)
         self.documents = text_splitter.split_documents(documents)
 
         if debug:
@@ -89,7 +89,7 @@ class Embedder:
     
 
 
-    def create_summary(self, llm_engine='Azure'):
+    def create_summary(self, summary_method='stuff', llm_engine='Azure'):
         """Create paper summary. The summary is created by using LangChain's summarize_chain.
 
         Args:
@@ -118,7 +118,7 @@ class Embedder:
         else:
             raise KeyError("Currently unsupported chat model type!")
         
-        chain = load_summarize_chain(llm, chain_type="stuff")
+        chain = load_summarize_chain(llm, chain_type=summary_method)
         summary = chain.run(self.documents[:10])
 
         return summary
