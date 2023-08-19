@@ -40,17 +40,18 @@ class Embedder:
         
 
 
-    def load_n_process_document(self, path):
+    def load_n_process_document(self, issue, page):
         """Load and process PDF document.
 
         Args:
         --------------
-        path: path of the paper.
+        issue: path of the journal issue.
+        page: dict, start page number and length of the article in the issue.
         """
 
         # Load PDF
-        loader = PyMuPDFLoader(path)
-        documents = loader.load()
+        loader = PyMuPDFLoader(issue)
+        documents = loader.load()[page['start']: page['start'] + page['length']]
 
         # Process PDF
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
