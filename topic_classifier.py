@@ -56,10 +56,17 @@ class TopicClassifier:
         --------------
         topic_list: a list of potential topics.
         verbose: boolean, if classifying progress is shown.
+
+        Outputs:
+        --------
+        relevant_topics: relevant topics and their relevancy scores
         """
 
         # Process article
         documents = self._split_article()
+
+        # Generate prompt for summary LLM
+        prompt = self._specify_prompt()
 
         # Loop over individual paragraphs
         llm_response = []
@@ -67,7 +74,7 @@ class TopicClassifier:
             if i%2==0 and verbose:
                 print(f"Processing {i+1}/{len(documents)}th docs.")
             
-            response = self.llm.predict(self.prompt.format(text=doc.page_content, topics=topic_list))
+            response = self.llm.predict(prompt.format(text=doc.page_content, topics=topic_list))
             llm_response.append(response)
 
         # Majority vote 
@@ -88,6 +95,10 @@ class TopicClassifier:
 
     def _split_article(self):
         """Split the article into multiple paragraphs.
+    
+        Outputs:
+        --------
+        documents: splitted chunks of the given article.
         """
 
         # Load article
@@ -104,6 +115,10 @@ class TopicClassifier:
 
     def _specify_prompt(self):
         """Specify LLM prompt for topic classification.
+
+        Outputs:
+        --------
+        prompt: prompt for the summarization engine.
         """
         template = """Given the following text, output which focal points from the following list are most relevant.
 
@@ -111,10 +126,12 @@ class TopicClassifier:
                 [Focal points]: {topics}
                 """
 
-        self.prompt = PromptTemplate(
+        prompt = PromptTemplate(
             template=template,
             input_variables=["text", "topics"],
         )
+
+        return prompt
 
 
         
