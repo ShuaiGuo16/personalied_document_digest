@@ -102,7 +102,7 @@ class TopicClassifier:
         """
 
         # Load article
-        loader = PyMuPDFLoader("./papers/"+self.issue+".pdf")
+        loader = PyMuPDFLoader("./papers/"+self.issue)
         raw_documents = loader.load()[self.page_num[0]:self.page_num[-1]+1]
 
         # Split article
