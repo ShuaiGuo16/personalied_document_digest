@@ -119,7 +119,7 @@ class Embedder:
             raise KeyError("Currently unsupported chat model type!")
         
         chain = load_summarize_chain(llm, chain_type=summary_method)
-        summary = chain.run(self.documents[:10])
+        summary = chain.run(self.documents)
 
         return summary
     
