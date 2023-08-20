@@ -9,6 +9,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI, AzureOpenAI
+import utilities
 import os
 
 
@@ -60,13 +61,13 @@ class TopicClassifier:
 
         Outputs:
         --------
-        relevant_topics: relevant topics and their relevancy scores
+        relevant_topics: relevant topics with their relevancy scores and reasons
         """
 
         # Process article
         documents = self._split_article()
 
-        # Generate prompt for summary LLM
+        # Generate prompt for topic classification LLM
         prompt = self._specify_prompt()
 
         # Loop over individual paragraphs
@@ -95,10 +96,35 @@ class TopicClassifier:
         # Normalize relevant scores
         relevant_topics = self._normalize_score(relevant_topics, desired_max)
 
+        # Update attributes
+        self.relevant_topics = relevant_topics
 
         return relevant_topics
     
 
+
+    def summarizer(self, topic_list):
+        """Determine relevant topics in the given topic list.
+
+        Args:
+        --------------
+        topic_list: user selected topics.
+
+        Outputs:
+        --------
+        relevance_explanation: dict, reasons for topic relevancy.
+        """
+
+        # Generate prompt for summary LLM
+        prompt = self._specify_summary_prompt()
+
+        relevance_explanation = {}
+        for topic in topic_list:
+            response = self.llm.predict(prompt.format(theme=topic, 
+                                        reasons=self.relevant_topics[topic]['reason']))
+            relevance_explanation[topic] = response
+
+        return relevance_explanation
 
 
 
@@ -114,9 +140,12 @@ class TopicClassifier:
         loader = PyMuPDFLoader("./papers/"+self.issue)
         raw_documents = loader.load()[self.page_num[0]:self.page_num[-1]+1]
 
+        # Remove reference section
+        no_ref_documents = utilities.remove_reference(raw_documents)
+
         # Split article
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=3000, chunk_overlap=100)
-        documents = text_splitter.split_documents(raw_documents)
+        documents = text_splitter.split_documents(no_ref_documents)
 
         return documents
 
@@ -127,8 +156,9 @@ class TopicClassifier:
 
         Outputs:
         --------
-        prompt: prompt for the summarization engine.
+        prompt: prompt for the topic classification engine.
         """
+
         template = """Given the following text, identify which focal points from the following list are most relevant and 
         provide a reason for each selection in the format of "topic: reason".
 
@@ -143,6 +173,30 @@ class TopicClassifier:
 
         return prompt
     
+
+
+    def _specify_summary_prompt(self):
+        """Specify LLM prompt for summarize why given topics are relevant to the article.
+
+        Outputs:
+        --------
+        prompt: prompt for the summarization engine.
+        """
+
+        template = """Given the reasons for why individual sections of an article are relevant to the topic of {theme}, 
+        summarize concisely the reason why the entire article is relevant to the topic of {theme}.
+
+        [theme]: {theme} \n
+        [reasons]: {reasons}
+        """
+
+        prompt = PromptTemplate(
+            template=template,
+            input_variables=["theme", "reasons"],
+        )
+
+        return prompt
+
 
 
     def _normalize_score(self, relevant_topics, desired_max):
