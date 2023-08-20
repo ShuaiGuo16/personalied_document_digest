@@ -10,6 +10,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.chains.summarize import load_summarize_chain
 from langchain.chat_models import ChatOpenAI, AzureChatOpenAI
+import utilities
 import os
 
 
@@ -54,12 +55,15 @@ class Embedder:
         loader = PyMuPDFLoader(issue)
         documents = loader.load()[page['start']-1: page['start']+page['length']-1]
 
+        # Remove reference section
+        no_ref_documents = utilities.remove_reference(documents)
+
         # Process PDF
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=100)
-        self.documents = text_splitter.split_documents(documents)
+        self.documents = text_splitter.split_documents(no_ref_documents)
 
         if debug:
-            return documents
+            return documents, no_ref_documents
 
 
 
