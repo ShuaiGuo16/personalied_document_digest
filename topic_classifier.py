@@ -54,7 +54,7 @@ class TopicClassifier:
 
         Args:
         --------------
-        topic_list: a list of potential topics.
+        topic_list: a list of potential topics (exclude "general review").
         desired_max: desired maximum score for measuring relevance.
         verbose: boolean, if classifying progress is shown.
 
@@ -78,23 +78,27 @@ class TopicClassifier:
             response = self.llm.predict(prompt.format(text=doc.page_content, topics=topic_list))
             llm_response.append(response)
 
+        
         # Majority vote 
-        results = {}
-        for topic in topic_list[:-1]:
-            results[topic] = 0
-
+        results = {topic: {'vote': 0, 'reason': []} for topic in topic_list}
+        for topic in topic_list:
             for response in llm_response:
-                if topic in response:
-                    results[topic] += 1
+                parse_response = response.split('\n')
+                for item in parse_response:
+                    if topic in item:
+                        results[topic]['vote'] += 1
+                        results[topic]['reason'].append(item.split(':')[-1].strip())
 
         # Determine relevant topics
-        relevant_topics = dict(sorted(results.items(), key=lambda item: item[1], reverse=True))
+        relevant_topics = dict(sorted(results.items(), key=lambda item: item[1]['vote'], reverse=True))
 
         # Normalize relevant scores
         relevant_topics = self._normalize_score(relevant_topics, desired_max)
 
 
         return relevant_topics
+    
+
 
 
 
@@ -125,11 +129,12 @@ class TopicClassifier:
         --------
         prompt: prompt for the summarization engine.
         """
-        template = """Given the following text, output which focal points from the following list are most relevant.
+        template = """Given the following text, identify which focal points from the following list are most relevant and 
+        provide a reason for each selection in the format of "topic: reason".
 
-                [text]: {text} \n
-                [Focal points]: {topics}
-                """
+        [text]: {text} \n
+        [Focal points]: {topics}
+        """
 
         prompt = PromptTemplate(
             template=template,
@@ -150,11 +155,14 @@ class TopicClassifier:
         """
 
         # Get min & max
-        original_max = max(relevant_topics.values())
-        original_min = min(relevant_topics.values()) 
+        original_max = max(item['vote'] for item in relevant_topics.values())
+        original_min = min(item['vote'] for item in relevant_topics.values())
 
-        # Normalize scores
-        normalized_scores = {topic: (score-original_min)/(original_max-original_min)*desired_max for topic, score in relevant_topics.items()}
+        # Normalize vote
+        normalized_scores = {}
+        for key, item in relevant_topics.items():
+            normalized_vote = ((item['vote'] - original_min) / (original_max - original_min)) * desired_max
+            normalized_scores[key] = {'vote': normalized_vote, 'reason': item['reason']}
 
         return normalized_scores
 
