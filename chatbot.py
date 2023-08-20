@@ -98,20 +98,18 @@ class JournalistBot(Chatbot):
         self.memory = ConversationBufferMemory(return_messages=True)
 
 
-    def instruct(self, theme, summary, focal_points, audience):
+    def instruct(self, theme, relevancy, audience):
         """Determine the context of journalist chatbot. 
         
         Args:
         ------
         theme: the theme of the article
         summary: the summary of the paper
-        focal_points: list, interested aspects to distill
         audience: list, target audience
         """
         
         self.theme = theme
-        self.summary = summary
-        self.focal_points = focal_points
+        self.relevancy = relevancy
         self.audience = audience
         
         # Define prompt template
@@ -148,38 +146,31 @@ class JournalistBot(Chatbot):
         prompt: instructions for the chatbot.
         """      
 
-        # Focal points prompt
-        focal_point_prompt = ('\n    '.join(self.focal_points)) 
+        # Theme relevancy prompt
+        relevancy_prompt = ''
+        for k, v in self.relevancy.items():
+            relevancy_prompt += k+': '+v+' \n\n'
         
         # Base prompt
-        prompt = f"""You are a journalist examining ABB's developments related to {self.theme} for {self.audience}.
+        prompt = f"""You are a journalist examining ABB's developments related to {', '.join(self.theme)} for {', '.join(self.audience)}.
+        Your mission is to interview the article's author, represented by another chatbot, to extract key insights about {', '.join(self.theme)}.
+        
+        To guide your interview, you are provided with the summary of why the theme(s) of {', '.join(self.theme)} is/are relevant to this article.
+        Your inquiries should align closely with the theme(s) and reasons provided.
 
-        Your mission is to interview the article's author, represented by another chatbot, extracting key insights and addressing specific subjects. 
-        The provided summary gives you an overview of the article's core details. 
-        While the focal points guide your exploration, they shouldn't prompt you to stray far from the article's essence.
+        [Themes and relevancy]: 
+        {relevancy_prompt}
 
-        Begin by gaining a broad understanding of the article through the focal points, and progressively focus on specific details. 
-        Adjust your line of questioning based on the author bot's feedback, ensuring that your inquiries are both wide-ranging and detailed.
+        Begin by gaining a broad understanding of the article through the theme(s), and progressively focus on specific details. 
+        Adjust your line of questioning based on the author bot's feedback.
 
         Guidelines to keep in mind:
-        - **Initiate and Lead**: It's crucial that you take the lead in this conversation. 
-        Always initiate with a question about the article and guide the dialogue throughout.
-        - **Article's Essence**: Let the article's summary be your anchor, but don't be restricted by it. Dive deeper to address the focal points.
-        - **Stay in Role**: Your role as a journalist is to unearth valuable details for {self.audience}.
-        - **Address the Focal Points**: These are your guideposts. Ensure your questions resonate with these themes:
-            {focal_point_prompt}
+        - **Initiate and Lead**: Always initiate with a question about the article and guide the dialogue throughout.
+        - **Stay in Role**: Your role as a journalist is to unearth valuable details for {', '.join(self.audience)}.
+        - **Address the theme**: These are your guideposts. Ensure your questions resonate with {', '.join(self.theme)}.
         - **Question Quality**: Ask clear, concise questions that stem from the article's content.
-        - **Formatting**: Refrain from prefixing questions with labels like "Interviewer:" or "Question:".
-
-        [Summary]: {self.summary}
+        - **Formatting**: Avoid prefixing questions with labels like "Interviewer:" or "Question:".
         """
-
-        # for focal_point in self.focal_points:
-        #     prompt += '\n'
-        #     prompt += focal_point
-
-        # prompt += '\n\n'
-        # prompt += f"""[Summary]: {self.summary}"""
         
         return prompt
 
