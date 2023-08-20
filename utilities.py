@@ -137,3 +137,34 @@ def extract_articles(issue_name):
 
     return articles
 
+
+
+def remove_reference(documents):
+    """Remove the reference section of the extracted article.
+    Here, we made the assumption that the reference appears on the last page.
+
+    Args:
+    --------------
+    documents: the extracted article.
+
+    Outputs:
+    --------
+    documents: the extracted article with reference page removed.
+    """
+    
+    # Last page
+    text = documents[-1].page_content
+
+    # Split the text by the "References" section
+    before_references, references_and_after = text.split("References", 1)
+
+    # Find the end of the "References" section by locating the first "—" after "References"
+    after_references = references_and_after.split("\n—\n", 1)[1]
+
+    # Combine the before and after parts
+    cleaned_text = before_references + after_references
+
+    # Update the raw documents
+    documents[-1].page_content = cleaned_text
+
+    return documents
