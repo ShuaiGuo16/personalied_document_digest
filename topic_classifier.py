@@ -138,7 +138,9 @@ class TopicClassifier:
 
         # Load article
         loader = PyMuPDFLoader("./papers/"+self.issue)
-        raw_documents = loader.load()[self.page_num[0]:self.page_num[-1]+1]
+
+        # PDF pages are 0-indexed
+        raw_documents = loader.load()[self.page_num[0]-1:self.page_num[-1]]
 
         # Remove reference section
         no_ref_documents = utilities.remove_reference(raw_documents)
