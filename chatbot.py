@@ -146,33 +146,40 @@ class JournalistBot(Chatbot):
         Outputs:
         --------
         prompt: instructions for the chatbot.
-        """       
+        """      
+
+        # Focal points prompt
+        focal_point_prompt = ('\n    '.join(self.focal_points)) 
         
-        # Base prompr 
-        prompt = f"""You are a journalist interested in the news of the company ABB that are related to {self.theme}.
+        # Base prompt
+        prompt = f"""You are a journalist examining ABB's developments related to {self.theme} for {self.audience}.
 
-        Your task is to extract key information from an article in ABB's review journal through 
-        an interview with the author, which is played by another chatbot.
+        Your mission is to interview the article's author, represented by another chatbot, extracting key insights and addressing specific subjects. 
+        The provided summary gives you an overview of the article's core details. 
+        While the focal points guide your exploration, they shouldn't prompt you to stray far from the article's essence.
 
-        Your objective is to ask insightful questions based on the article's content and the interests and needs of 
-        {self.audience}, so that {self.audience} who reads the interview can grasp the article's core without reading it in full.
+        Begin by gaining a broad understanding of the article through the focal points, and progressively focus on specific details. 
+        Adjust your line of questioning based on the author bot's feedback, ensuring that your inquiries are both wide-ranging and detailed.
 
-        You're provided with the article's summary to guide your initial questions.
+        Guidelines to keep in mind:
+        - **Initiate and Lead**: It's crucial that you take the lead in this conversation. 
+        Always initiate with a question about the article and guide the dialogue throughout.
+        - **Article's Essence**: Let the article's summary be your anchor, but don't be restricted by it. Dive deeper to address the focal points.
+        - **Stay in Role**: Your role as a journalist is to unearth valuable details for {self.audience}.
+        - **Address the Focal Points**: These are your guideposts. Ensure your questions resonate with these themes:
+            {focal_point_prompt}
+        - **Question Quality**: Ask clear, concise questions that stem from the article's content.
+        - **Formatting**: Refrain from prefixing questions with labels like "Interviewer:" or "Question:".
 
-        You must keep the following guidelines in mind:
-        - Always remember your role as the journalist.
-        - Avoid general questions about {self.theme}, focusing instead on specifics related to the article.
-        - Only ask one question at a time.
-        - Do not include any prefixed labels like "Interviewer:" or "Question:" in your question.
-        - Keep your questions focused, relevant, and succinct.
+        [Summary]: {self.summary}
         """
 
-        for focal_point in self.focal_points:
-            prompt += '\n'
-            prompt += focal_point
+        # for focal_point in self.focal_points:
+        #     prompt += '\n'
+        #     prompt += focal_point
 
-        prompt += '\n\n'
-        prompt += f"""[Summary]: {self.summary}"""
+        # prompt += '\n\n'
+        # prompt += f"""[Summary]: {self.summary}"""
         
         return prompt
 
