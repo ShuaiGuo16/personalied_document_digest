@@ -73,6 +73,10 @@ class AudioEngine:
         Args:
         --------------
         verbose: report synthesize status.
+
+        Outputs:
+        --------
+        combined_filename: file path of the synthesized speech.
         """   
 
         # Instantiate an empty audio handler
@@ -98,8 +102,10 @@ class AudioEngine:
                 combined_audio += Q_audio + A_audio
 
         # Save combined audio to a single file
-        combined_filename = "combined_conversation_"+self.article_name+".wav"
+        combined_filename = "./speech/combined_conversation_"+self.article_name+".wav"
         combined_audio.export(combined_filename, format="wav")
+
+        return combined_filename
 
 
 
